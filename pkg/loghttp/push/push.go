@@ -393,7 +393,7 @@ func ParseLokiRequest(userID string, r *http.Request, limits Limits, tenantConfi
 
 		lbs, err := syntax.ParseLabels(s.Labels)
 		if err != nil {
-			return nil, nil, fmt.Errorf("couldn't parse labels: %w", err)
+			return nil, nil, fmt.Errorf("couldn't parse labels: %w, labels: %s", err, s.Labels)
 		}
 
 		// Check if this is an aggregated metric or pattern stream
@@ -465,7 +465,7 @@ func CalculateStreamsStats(ctx context.Context, userID string, req *logproto.Pus
 
 		lbs, err := syntax.ParseLabels(s.Labels)
 		if err != nil {
-			return fmt.Errorf("couldn't parse labels: %w", err)
+			return fmt.Errorf("couldn't parse labels: %w, labels: %s", err, s.Labels)
 		}
 
 		var retentionPeriod time.Duration

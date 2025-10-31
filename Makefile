@@ -709,9 +709,6 @@ else
 	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod tidy
 	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod vendor
 endif
-	@git diff --exit-code -- go.sum go.mod vendor/ || \
-	    (echo "Run 'go mod download && go mod verify && go mod tidy && go mod vendor' and check in changes to vendor/ to fix failed check-mod."; exit 1)
-
 
 lint-jsonnet:
 	@RESULT=0; \

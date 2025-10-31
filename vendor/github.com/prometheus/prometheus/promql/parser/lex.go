@@ -703,7 +703,7 @@ func lexInsideBraces(l *Lexer) stateFn {
 		}
 		return lexStatements
 	default:
-		return l.errorf("unexpected character inside braces: %q", r)
+		return l.errorf("unexpected character inside braces: %q in string: %s", r, l.input)
 	}
 	return lexInsideBraces
 }

@@ -1,8 +1,10 @@
 package distributor
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"slices"
 	"strings"
@@ -94,7 +96,23 @@ func (d *Distributor) pushHandler(w http.ResponseWriter, r *http.Request, pushRe
 					"err", err,
 				)
 			}
-			d.writeFailuresManager.Log(tenantID, fmt.Errorf("couldn't parse push request: %w", err))
+
+			const maxBodyCaptureSize = 4096 // 4KB
+			var capturedBody []byte
+			if r.Body != nil {
+				bodyReader := io.LimitReader(r.Body, maxBodyCaptureSize)
+				capturedBody, _ = io.ReadAll(bodyReader)
+				r.Body = io.NopCloser(io.MultiReader(
+					strings.NewReader(string(capturedBody)),
+					r.Body,
+				))
+			}
+
+			bodyB64 := base64.StdEncoding.EncodeToString(capturedBody)
+			if len(capturedBody) >= maxBodyCaptureSize {
+				bodyB64 += "...(truncated)"
+			}
+			d.writeFailuresManager.Log(tenantID, fmt.Errorf("(MODIFIED) couldn't parse push request: %w, body(base64): %s", err, bodyB64))
 
 			errorWriter(w, err.Error(), http.StatusBadRequest, logger)
 			return

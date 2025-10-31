@@ -11,7 +11,7 @@
     "env":
       "BUILD_TIMEOUT": 60
       "GO_VERSION": "1.24.8"
-      "IMAGE_PREFIX": "grafana"
+      "IMAGE_PREFIX": "ghcr.io/${{ github.actor }}"
       "RELEASE_LIB_REF": "83e166f5c8795fa94dec9f4cbdb82205fbb8bf2b"
       "RELEASE_REPO": "grafana/loki"
     "needs":
@@ -25,6 +25,7 @@
     "permissions":
       "contents": "read"
       "id-token": "write"
+      "packages": "write"
     "runs-on": "${{ matrix.runs_on }}"
     "steps":
     - "name": "pull release library code"
@@ -47,8 +48,12 @@
         "package-manager-cache": false
     - "name": "Set up Docker buildx"
       "uses": "docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2"
-    - "name": "Login to DockerHub (from Vault)"
-      "uses": "grafana/shared-workflows/actions/dockerhub-login@fa48192dac470ae356b3f7007229f3ac28c48a25"
+    - "name": "Log in to GitHub Container Registry"
+      "uses": "docker/login-action@v3"
+      "with":
+        "registry": "ghcr.io"
+        "username": "${{ github.actor }}"
+        "password": "${{ secrets.GITHUB_TOKEN }}"
     - "id": "weekly-version"
       "name": "Get weekly version"
       "run": |
@@ -92,13 +97,13 @@
         "include":
         - "arch": "linux/amd64"
           "runs_on":
-          - "github-hosted-ubuntu-x64-small"
+          - "ubuntu-24.04"
         - "arch": "linux/arm64"
           "runs_on":
-          - "github-hosted-ubuntu-arm64-small"
+          - "ubuntu-24.04-arm"
         - "arch": "linux/arm"
           "runs_on":
-          - "github-hosted-ubuntu-arm64-small"
+          - "ubuntu-24.04-arm"
   "loki-canary-boringcrypto-manifest":
     "env":
       "BUILD_TIMEOUT": 60
@@ -112,12 +117,17 @@
     "permissions":
       "contents": "read"
       "id-token": "write"
+      "packages": "write"
     "runs-on": "ubuntu-latest"
     "steps":
     - "name": "Set up Docker buildx"
       "uses": "docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2"
     - "name": "Login to DockerHub (from Vault)"
-      "uses": "grafana/shared-workflows/actions/dockerhub-login@75804962c1ba608148988c1e2dc35fbb0ee21746"
+      "uses": "docker/login-action@v3"
+      "with":
+        "registry": "ghcr.io"
+        "username": "${{ github.actor }}"
+        "password": "${{ secrets.GITHUB_TOKEN }}"
     - "name": "Publish multi-arch manifest"
       "run": |
         # Unfortunately there is no better way atm than having a separate named output for each digest
@@ -135,7 +145,7 @@
     "env":
       "BUILD_TIMEOUT": 60
       "GO_VERSION": "1.24.8"
-      "IMAGE_PREFIX": "grafana"
+      "IMAGE_PREFIX": "ghcr.io/${{ github.actor }}"
       "RELEASE_LIB_REF": "83e166f5c8795fa94dec9f4cbdb82205fbb8bf2b"
       "RELEASE_REPO": "grafana/loki"
     "needs":
@@ -149,6 +159,7 @@
     "permissions":
       "contents": "read"
       "id-token": "write"
+      "packages": "write"
     "runs-on": "${{ matrix.runs_on }}"
     "steps":
     - "name": "pull release library code"
@@ -171,8 +182,12 @@
         "package-manager-cache": false
     - "name": "Set up Docker buildx"
       "uses": "docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2"
-    - "name": "Login to DockerHub (from Vault)"
-      "uses": "grafana/shared-workflows/actions/dockerhub-login@fa48192dac470ae356b3f7007229f3ac28c48a25"
+    - "name": "Log in to GitHub Container Registry"
+      "uses": "docker/login-action@v3"
+      "with":
+        "registry": "ghcr.io"
+        "username": "${{ github.actor }}"
+        "password": "${{ secrets.GITHUB_TOKEN }}"
     - "id": "weekly-version"
       "name": "Get weekly version"
       "run": |
@@ -216,13 +231,13 @@
         "include":
         - "arch": "linux/amd64"
           "runs_on":
-          - "github-hosted-ubuntu-x64-small"
+          - "ubuntu-latest"
         - "arch": "linux/arm64"
           "runs_on":
-          - "github-hosted-ubuntu-arm64-small"
+          - "ubuntu-24.04-arm"
         - "arch": "linux/arm"
           "runs_on":
-          - "github-hosted-ubuntu-arm64-small"
+          - "ubuntu-24.04-arm"
   "loki-canary-manifest":
     "env":
       "BUILD_TIMEOUT": 60
@@ -236,12 +251,17 @@
     "permissions":
       "contents": "read"
       "id-token": "write"
+      "packages": "write"
     "runs-on": "ubuntu-latest"
     "steps":
     - "name": "Set up Docker buildx"
       "uses": "docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2"
     - "name": "Login to DockerHub (from Vault)"
-      "uses": "grafana/shared-workflows/actions/dockerhub-login@75804962c1ba608148988c1e2dc35fbb0ee21746"
+      "uses": "docker/login-action@v3"
+      "with":
+        "registry": "ghcr.io"
+        "username": "${{ github.actor }}"
+        "password": "${{ secrets.GITHUB_TOKEN }}"
     - "name": "Publish multi-arch manifest"
       "run": |
         # Unfortunately there is no better way atm than having a separate named output for each digest
@@ -259,7 +279,7 @@
     "env":
       "BUILD_TIMEOUT": 60
       "GO_VERSION": "1.24.8"
-      "IMAGE_PREFIX": "grafana"
+      "IMAGE_PREFIX": "ghcr.io/${{ github.actor }}"
       "RELEASE_LIB_REF": "83e166f5c8795fa94dec9f4cbdb82205fbb8bf2b"
       "RELEASE_REPO": "grafana/loki"
     "needs":
@@ -273,6 +293,7 @@
     "permissions":
       "contents": "read"
       "id-token": "write"
+      "packages": "write"
     "runs-on": "${{ matrix.runs_on }}"
     "steps":
     - "name": "pull release library code"
@@ -295,8 +316,12 @@
         "package-manager-cache": false
     - "name": "Set up Docker buildx"
       "uses": "docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2"
-    - "name": "Login to DockerHub (from Vault)"
-      "uses": "grafana/shared-workflows/actions/dockerhub-login@fa48192dac470ae356b3f7007229f3ac28c48a25"
+    - "name": "Log in to GitHub Container Registry"
+      "uses": "docker/login-action@v3"
+      "with":
+        "registry": "ghcr.io"
+        "username": "${{ github.actor }}"
+        "password": "${{ secrets.GITHUB_TOKEN }}"
     - "id": "weekly-version"
       "name": "Get weekly version"
       "run": |
@@ -340,13 +365,13 @@
         "include":
         - "arch": "linux/amd64"
           "runs_on":
-          - "github-hosted-ubuntu-x64-small"
+          - "ubuntu-latest"
         - "arch": "linux/arm64"
           "runs_on":
-          - "github-hosted-ubuntu-arm64-small"
+          - "ubuntu-24.04-arm"
         - "arch": "linux/arm"
           "runs_on":
-          - "github-hosted-ubuntu-arm64-small"
+          - "ubuntu-24.04-arm"
   "loki-manifest":
     "env":
       "BUILD_TIMEOUT": 60
@@ -360,12 +385,17 @@
     "permissions":
       "contents": "read"
       "id-token": "write"
+      "packages": "write"
     "runs-on": "ubuntu-latest"
     "steps":
     - "name": "Set up Docker buildx"
       "uses": "docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2"
     - "name": "Login to DockerHub (from Vault)"
-      "uses": "grafana/shared-workflows/actions/dockerhub-login@75804962c1ba608148988c1e2dc35fbb0ee21746"
+      "uses": "docker/login-action@v3"
+      "with":
+        "registry": "ghcr.io"
+        "username": "${{ github.actor }}"
+        "password": "${{ secrets.GITHUB_TOKEN }}"
     - "name": "Publish multi-arch manifest"
       "run": |
         # Unfortunately there is no better way atm than having a separate named output for each digest
@@ -383,7 +413,7 @@
     "env":
       "BUILD_TIMEOUT": 60
       "GO_VERSION": "1.24.8"
-      "IMAGE_PREFIX": "grafana"
+      "IMAGE_PREFIX": "ghcr.io/${{ github.actor }}"
       "RELEASE_LIB_REF": "83e166f5c8795fa94dec9f4cbdb82205fbb8bf2b"
       "RELEASE_REPO": "grafana/loki"
     "needs":
@@ -397,6 +427,7 @@
     "permissions":
       "contents": "read"
       "id-token": "write"
+      "packages": "write"
     "runs-on": "${{ matrix.runs_on }}"
     "steps":
     - "name": "pull release library code"
@@ -419,8 +450,12 @@
         "package-manager-cache": false
     - "name": "Set up Docker buildx"
       "uses": "docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2"
-    - "name": "Login to DockerHub (from Vault)"
-      "uses": "grafana/shared-workflows/actions/dockerhub-login@fa48192dac470ae356b3f7007229f3ac28c48a25"
+    - "name": "Log in to GitHub Container Registry"
+      "uses": "docker/login-action@v3"
+      "with":
+        "registry": "ghcr.io"
+        "username": "${{ github.actor }}"
+        "password": "${{ secrets.GITHUB_TOKEN }}"
     - "id": "weekly-version"
       "name": "Get weekly version"
       "run": |
@@ -464,13 +499,13 @@
         "include":
         - "arch": "linux/amd64"
           "runs_on":
-          - "github-hosted-ubuntu-x64-small"
+          - "ubuntu-latest"
         - "arch": "linux/arm64"
           "runs_on":
-          - "github-hosted-ubuntu-arm64-small"
+          - "ubuntu-24.04-arm"
         - "arch": "linux/arm"
           "runs_on":
-          - "github-hosted-ubuntu-arm64-small"
+          - "ubuntu-24.04-arm"
   "promtail-manifest":
     "env":
       "BUILD_TIMEOUT": 60
@@ -484,12 +519,17 @@
     "permissions":
       "contents": "read"
       "id-token": "write"
+      "packages": "write"
     "runs-on": "ubuntu-latest"
     "steps":
     - "name": "Set up Docker buildx"
       "uses": "docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2"
     - "name": "Login to DockerHub (from Vault)"
-      "uses": "grafana/shared-workflows/actions/dockerhub-login@75804962c1ba608148988c1e2dc35fbb0ee21746"
+      "uses": "docker/login-action@v3"
+      "with":
+        "registry": "ghcr.io"
+        "username": "${{ github.actor }}"
+        "password": "${{ secrets.GITHUB_TOKEN }}"
     - "name": "Publish multi-arch manifest"
       "run": |
         # Unfortunately there is no better way atm than having a separate named output for each digest
