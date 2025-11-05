@@ -335,7 +335,7 @@ func (w *WALCheckpointWriter) Advance() (bool, error) {
 	// we can start from that particular WAL segment.
 	checkpointDir := filepath.Join(w.segmentWAL.Dir(), fmt.Sprintf(checkpointPrefix+"%06d", lastSegment))
 	level.Info(util_log.Logger).Log("msg", "attempting checkpoint for", "dir", checkpointDir)
-	checkpointDirTemp := checkpointDir + ".tmp"
+	checkpointDirTemp := checkpointDir + tmpSuffix
 
 	// cleanup any old partial checkpoints (not just the current one)
 	cleanupStaleTmpCheckpoints(w.segmentWAL.Dir(), util_log.Logger)
@@ -395,9 +395,12 @@ func (w *WALCheckpointWriter) flush() error {
 	return nil
 }
 
-const checkpointPrefix = "checkpoint."
+const (
+	checkpointPrefix = "checkpoint."
+	tmpSuffix        = ".tmp"
+)
 
-var checkpointRe = regexp.MustCompile("^" + regexp.QuoteMeta(checkpointPrefix) + "(\\d+)(\\.tmp)?$")
+var checkpointRe = regexp.MustCompile("^" + regexp.QuoteMeta(checkpointPrefix) + "(\\d+)(" + regexp.QuoteMeta(tmpSuffix) + ")?$")
 
 // checkpointIndex returns the index of a given checkpoint file. It handles
 // both regular and temporary checkpoints according to the includeTmp flag. If
@@ -491,7 +494,7 @@ func (w *WALCheckpointWriter) deleteCheckpoints(maxIndex int) (err error) {
 // checkpoints are safe to delete, not just the segment numbers.
 //
 // This differs from deleteCheckpoints() which runs after successful checkpoint completion and handles
-// normal cleanup including .tmp files.
+// normal cleanup including temporary files.
 func cleanupOldCheckpoints(dir string, protectedCheckpointIdx int, logger log.Logger) {
 	level.Info(util_log.Logger).Log("msg", "old checkpoint cleanup starting")
 	start := time.Now()
@@ -520,7 +523,7 @@ func cleanupOldCheckpoints(dir string, protectedCheckpointIdx int, logger log.Lo
 	}
 
 	for _, fi := range files {
-		// Check if this is a completed checkpoint (not .tmp)
+		// Check if this is a completed checkpoint (not temporary)
 		idx, err := checkpointIndex(fi.Name(), false)
 		if err != nil || !fi.IsDir() {
 			continue
@@ -542,9 +545,9 @@ func cleanupOldCheckpoints(dir string, protectedCheckpointIdx int, logger log.Lo
 	}
 }
 
-// cleanupStaleTmpCheckpoints removes all .tmp checkpoint directories which represent
+// cleanupStaleTmpCheckpoints removes all temporary checkpoint directories which represent
 // incomplete/failed checkpoint operations. These are safe to delete because recovery
-// only uses completed checkpoints (those without the .tmp suffix).
+// only uses completed checkpoints (those without the temporary suffix).
 func cleanupStaleTmpCheckpoints(dir string, logger log.Logger) {
 	level.Info(util_log.Logger).Log("msg", "tmp checkpoint cleanup starting")
 	start := time.Now()
@@ -562,14 +565,14 @@ func cleanupStaleTmpCheckpoints(dir string, logger log.Logger) {
 	}
 
 	for _, fi := range files {
-		// Check if this is a .tmp checkpoint directory
+		// Check if this is a temporary checkpoint directory
 		if _, tmpErr := checkpointIndex(fi.Name(), true); tmpErr == nil && fi.IsDir() {
-			// Only delete if it actually has the .tmp suffix
-			if filepath.Ext(fi.Name()) == ".tmp" {
+			// Only delete if it actually has the temporary suffix
+			if filepath.Ext(fi.Name()) == tmpSuffix {
 				tmpPath := filepath.Join(dir, fi.Name())
 				if err := os.RemoveAll(tmpPath); err != nil {
 					level.Error(logger).Log("msg", "unable to cleanup stale tmp checkpoint, this is not expected and could lead to disk space exhaustion and may indicate disk I/O problems or corruption and should be investigated manually", "dir", tmpPath, "err", err)
-					// Continue cleaning up other .tmp directories even if one fails
+					// Continue cleaning up other temporary directories even if one fails
 					allSuccess = false
 				} else {
 					level.Info(logger).Log("msg", "cleaned up stale tmp checkpoint at startup", "dir", fi.Name())
