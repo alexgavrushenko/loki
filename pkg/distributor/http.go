@@ -55,6 +55,20 @@ func (d *Distributor) pushHandler(w http.ResponseWriter, r *http.Request, pushRe
 	logPushRequestStreams := d.tenantConfigs.LogPushRequestStreams(tenantID)
 	filterPushRequestStreamsIPs := d.tenantConfigs.FilterPushRequestStreamsIPs(tenantID)
 	presumedAgentIP := extractPresumedAgentIP(r)
+
+	// Capture request body for error logging before parsing (limit size to avoid memory issues)
+	const maxBodyCaptureSize = 4096 // 4KB
+	var capturedBody []byte
+	if r.Body != nil {
+		bodyReader := io.LimitReader(r.Body, maxBodyCaptureSize)
+		capturedBody, _ = io.ReadAll(bodyReader)
+		// Reset the request body with the captured data plus any remaining data
+		r.Body = io.NopCloser(io.MultiReader(
+			strings.NewReader(string(capturedBody)),
+			r.Body,
+		))
+	}
+
 	req, pushStats, err := push.ParseRequest(logger, tenantID, d.cfg.MaxRecvMsgSize, r, d.validator.Limits, d.tenantConfigs,
 		pushRequestParser, d.usageTracker, streamResolver, presumedAgentIP, format)
 	if err != nil {
@@ -97,17 +111,7 @@ func (d *Distributor) pushHandler(w http.ResponseWriter, r *http.Request, pushRe
 				)
 			}
 
-			const maxBodyCaptureSize = 4096 // 4KB
-			var capturedBody []byte
-			if r.Body != nil {
-				bodyReader := io.LimitReader(r.Body, maxBodyCaptureSize)
-				capturedBody, _ = io.ReadAll(bodyReader)
-				r.Body = io.NopCloser(io.MultiReader(
-					strings.NewReader(string(capturedBody)),
-					r.Body,
-				))
-			}
-
+			// Include base64-encoded request body in error for debugging
 			bodyB64 := base64.StdEncoding.EncodeToString(capturedBody)
 			if len(capturedBody) >= maxBodyCaptureSize {
 				bodyB64 += "...(truncated)"
